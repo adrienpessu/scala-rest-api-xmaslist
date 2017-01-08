@@ -61,6 +61,25 @@ class PresentController @Inject()(val reactiveMongoApi: ReactiveMongoApi)(implic
     }
   }
 
+  def presentByName(child: String) = AuthenticatedAction.async {
+    authenticatedRequest => {
+      // let's do our query
+      val futurePresentsList: Future[List[Present]] = presentFuture.flatMap {
+        // find all cities with name `name`
+        _.find(Json.obj("childId" -> child)).
+          // perform the query and get a cursor of JsObject
+          cursor[Present](ReadPreference.primary).
+          // Coollect the results as a list
+          collect[List]()
+      }
+
+      // everything's ok! Let's reply with a JsValue
+      futurePresentsList.map { presents =>
+        Ok(Json.toJson(presents))
+      }
+    }
+  }
+
 
   def hello = AuthenticatedAction {
     Ok(Json.toJson("{Hello: 'World'}"))

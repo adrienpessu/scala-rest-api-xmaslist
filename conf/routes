@@ -2,5 +2,6 @@ GET      /hello                     controllers.PresentController.hello
 GET     /helloDude                    controllers.PresentController.helloDude
 
 POST /present                         controllers.PresentController.create
-GET /presents                         controllers.PresentController.list
+GET /allpresents                      controllers.PresentController.list
+GET  /presents/:child                    controllers.PresentController.presentByName(child : String)
 
