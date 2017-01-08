@@ -17,4 +17,6 @@ libraryDependencies ++= Seq(
   // other dependencies separated by commas
 )
 
+libraryDependencies += filters
+
 fork in run := false
