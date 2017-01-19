@@ -1,5 +1,6 @@
 package controllers
 
+import java.util.UUID
 import javax.inject._
 
 import models.{Present, User}
@@ -10,7 +11,6 @@ import play.modules.reactivemongo._
 import reactivemongo.api.ReadPreference
 import reactivemongo.play.json.collection._
 import reactivemongo.play.json._
-
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -24,13 +24,36 @@ class PresentController @Inject()(val reactiveMongoApi: ReactiveMongoApi)(implic
     action(request)
   }
 
+  def generateRandomUuidInPresent( newPresent : Present ) : Present= {
+    def present: Present = new Present(UUID.randomUUID().toString, newPresent.getLabel, newPresent.getChildId, newPresent.getUrl, newPresent.getSantaName, newPresent.getPics);
+    return present;
+  }
+
   def create = AuthenticatedAction.async(parse.json) {
     authenticatedRequest => {
       Json.fromJson[Present](authenticatedRequest.body) match {
         case JsSuccess(present, _) =>
           for {
             repositories <- presentFuture
-            lastError <- repositories.insert(present)
+            lastError <- repositories.insert(generateRandomUuidInPresent(present))
+          } yield {
+            Logger.debug("Created 1 present from json");
+            Created(authenticatedRequest.body.toString())
+          }
+        case JsError(errors) =>
+          Future.successful(BadRequest("Could not build a present from the json provided. "))
+      }
+
+    }
+  }
+
+  def update = AuthenticatedAction.async(parse.json) {
+    authenticatedRequest => {
+      Json.fromJson[Present](authenticatedRequest.body) match {
+        case JsSuccess(present, _) =>
+          for {
+            repositories <- presentFuture
+            lastError <- repositories.findAndUpdate(Json.obj("id" -> present.id), present)
           } yield {
             Logger.debug("Created 1 present from json");
             Created(authenticatedRequest.body.toString())

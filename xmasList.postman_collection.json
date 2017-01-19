@@ -1,0 +1,42 @@
+{
+	"variables": [],
+	"info": {
+		"name": "xmasList",
+		"_postman_id": "1b35e978-a3b4-dae9-dde0-048316413c19",
+		"description": "",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "http://localhost:9000/presents",
+			"request": {
+				"url": "http://localhost:9000/presents",
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:9000/presents",
+			"request": {
+				"url": "http://localhost:9000/present",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"label\": \"ps4\",\n\t\"childName\": \"Adrien\",\n\t\"url\": \"Adrien\",\n\t\"santaName\": \"Adrien\",\n\t\"pics\": \"Adrien\"\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		}
+	]
+}

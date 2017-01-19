@@ -4,4 +4,5 @@ GET     /helloDude                    controllers.PresentController.helloDude
 POST /present                         controllers.PresentController.create
 GET /allpresents                      controllers.PresentController.list
 GET  /presents/:child                    controllers.PresentController.presentByName(child : String)
+PUT /present                        controllers.PresentController.update
 
