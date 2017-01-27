@@ -11,6 +11,7 @@ import play.modules.reactivemongo._
 import reactivemongo.api.ReadPreference
 import reactivemongo.play.json.collection._
 import reactivemongo.play.json._
+import reactivemongo.bson.{BSONObjectID, BSONDocument}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -64,6 +65,22 @@ class PresentController @Inject()(val reactiveMongoApi: ReactiveMongoApi)(implic
 
     }
   }
+
+
+  def delete(uuid: String) = AuthenticatedAction.async {
+    authenticatedRequest => {
+
+      for {
+        repositories <- presentFuture
+        lastError <- repositories.findAndRemove(Json.obj("id" -> uuid))
+      } yield {
+        Logger.debug("Created 1 present from json");
+        Ok(authenticatedRequest.body.toString())
+      }
+
+    }
+  }
+
 
   def list() = AuthenticatedAction.async {
     authenticatedRequest => {
