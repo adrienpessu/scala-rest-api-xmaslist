@@ -56,8 +56,8 @@ class PresentController @Inject()(val reactiveMongoApi: ReactiveMongoApi)(implic
             repositories <- presentFuture
             lastError <- repositories.findAndUpdate(Json.obj("id" -> present.id), present)
           } yield {
-            Logger.debug("Created 1 present from json");
-            Created(authenticatedRequest.body.toString())
+            Logger.debug("Updated 1 present from json");
+            Ok(authenticatedRequest.body.toString())
           }
         case JsError(errors) =>
           Future.successful(BadRequest("Could not build a present from the json provided. "))

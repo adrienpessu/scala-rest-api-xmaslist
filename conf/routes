@@ -1,9 +1,9 @@
 GET      /hello                     controllers.PresentController.hello
 GET     /helloDude                    controllers.PresentController.helloDude
 
-POST /present                         controllers.PresentController.create
+POST /presents                         controllers.PresentController.create
 GET /allpresents                      controllers.PresentController.list
 GET  /presents/:child                    controllers.PresentController.presentByName(child : String)
-PUT /present                        controllers.PresentController.update
+PUT /presents                        controllers.PresentController.update
 DELETE  /presents/:uuid                    controllers.PresentController.delete(uuid : String)
 
