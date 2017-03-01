@@ -10,7 +10,9 @@ import play.api.libs.json._
 import models.User
 import play.api.Logger
 import play.mvc.Http.HeaderNames._
-import com.auth0.jwt.JWTVerifier
+import org.jose4j.keys.HmacKey
+import org.jose4j.jwt.consumer.JwtConsumer
+import org.jose4j.jwt.consumer.JwtConsumerBuilder
 
 class AuthenticatedRequest[A](val user: User, val request: Request[A]) extends WrappedRequest[A](request)
 class AuthenticatedAsyncRequest[A](user: User, request: Request[A]) extends WrappedRequest[A](request)
@@ -25,25 +27,31 @@ object AuthenticatedAction extends ActionBuilder[AuthenticatedRequest] {
     val auth = request.headers.get(AUTHORIZATION)
     if(auth.isDefined) {
       val token = auth.get.substring(6).trim
-      val secret = BaseEncoding.base64Url.omitPadding.decode("password")
+      val jwtSecret = Option(sys.env("JWT_SECRET")).getOrElse("password")
 
-      val verifier: JWTVerifier = new JWTVerifier(secret, "", "");
-      val claims = verifier.verify(token)
+      try {
+        val key = new HmacKey(jwtSecret.getBytes("UTF-8"))
+        val jwtConsumer = new JwtConsumerBuilder().setRequireExpirationTime.setAllowedClockSkewInSeconds(30).setRequireSubject.setExpectedIssuer("the issuer").setExpectedAudience("the audience").setVerificationKey(key).setRelaxVerificationKeyValidation.build
+        // relaxes key length requirement
+        val claims = jwtConsumer.processToClaims(token)
 
-      val user = User(claims.get("name").toString,
-        claims.get("nickname").toString,
-        claims.get("family_name").toString,
-        claims.get("user_id").toString,
-        claims.get("email").toString,
-        claims.get("email_verified").toString,
-        claims.get("user_metadata").toString
-      )
+        val user = User(claims.getClaimValue("payload").toString,
+          claims.getClaimValue("payload").toString,
+          claims.getClaimValue("payload").toString,
+          "",
+          true
+        )
 
-      Logger.info("user" + user)
-      block(new AuthenticatedRequest[A](user, request))
+        Logger.info("user" + user)
+        block(new AuthenticatedRequest[A](user, request))
+      }
+      catch {
+        case e: Exception => block(new AuthenticatedRequest[A](User("Anonymous", "", "", "", false), request))
+      }
+
     }
     else{
-      block(new AuthenticatedRequest[A](User("Anonymous","", "", "", "", "", ""), request))
+      block(new AuthenticatedRequest[A](User("Anonymous","", "", "", false), request))
     }
   }
 }

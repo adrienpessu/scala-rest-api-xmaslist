@@ -16,7 +16,7 @@ import reactivemongo.bson.{BSONObjectID, BSONDocument}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class PresentController @Inject()(val reactiveMongoApi: ReactiveMongoApi)(implicit exec: ExecutionContext) extends Controller with MongoController with ReactiveMongoComponents with Secured {
+class PresentController @Inject()(val reactiveMongoApi: ReactiveMongoApi, configuration: play.api.Configuration)(implicit exec: ExecutionContext) extends Controller with MongoController with ReactiveMongoComponents with Secured {
 
   def presentFuture: Future[JSONCollection] = database.map(_.collection[JSONCollection]("presents"))
 
@@ -32,17 +32,22 @@ class PresentController @Inject()(val reactiveMongoApi: ReactiveMongoApi)(implic
 
   def create = AuthenticatedAction.async(parse.json) {
     authenticatedRequest => {
-      Json.fromJson[Present](authenticatedRequest.body) match {
-        case JsSuccess(present, _) =>
-          for {
-            repositories <- presentFuture
-            lastError <- repositories.insert(generateRandomUuidInPresent(present))
-          } yield {
-            Logger.debug("Created 1 present from json");
-            Created(authenticatedRequest.body.toString())
-          }
-        case JsError(errors) =>
-          Future.successful(BadRequest("Could not build a present from the json provided. "))
+      if(!authenticatedRequest.user.success){
+        Future.successful(Forbidden)
+      }
+      else {
+        Json.fromJson[Present](authenticatedRequest.body) match {
+          case JsSuccess(present, _) =>
+            for {
+              repositories <- presentFuture
+              lastError <- repositories.insert(generateRandomUuidInPresent(present))
+            } yield {
+              Logger.debug("Created 1 present from json");
+              Created(authenticatedRequest.body.toString())
+            }
+          case JsError(errors) =>
+            Future.successful(BadRequest("Could not build a present from the json provided. "))
+        }
       }
 
     }
@@ -50,72 +55,91 @@ class PresentController @Inject()(val reactiveMongoApi: ReactiveMongoApi)(implic
 
   def update = AuthenticatedAction.async(parse.json) {
     authenticatedRequest => {
-      Json.fromJson[Present](authenticatedRequest.body) match {
-        case JsSuccess(present, _) =>
-          for {
-            repositories <- presentFuture
-            lastError <- repositories.findAndUpdate(Json.obj("id" -> present.id), present)
-          } yield {
-            Logger.debug("Updated 1 present from json");
-            Ok(authenticatedRequest.body.toString())
-          }
-        case JsError(errors) =>
-          Future.successful(BadRequest("Could not build a present from the json provided. "))
+      if(!authenticatedRequest.user.success){
+        Future.successful(Forbidden)
       }
-
+      else {
+        Json.fromJson[Present](authenticatedRequest.body) match {
+          case JsSuccess(present, _) =>
+            for {
+              repositories <- presentFuture
+              lastError <- repositories.findAndUpdate(Json.obj("id" -> present.id), present)
+            } yield {
+              Logger.debug("Updated 1 present from json");
+              Ok(authenticatedRequest.body.toString())
+            }
+          case JsError(errors) =>
+            Future.successful(BadRequest("Could not build a present from the json provided. "))
+        }
+      }
     }
   }
 
 
   def delete(uuid: String) = AuthenticatedAction.async {
     authenticatedRequest => {
-
-      for {
-        repositories <- presentFuture
-        lastError <- repositories.findAndRemove(Json.obj("id" -> uuid))
-      } yield {
-        Logger.debug("Created 1 present from json");
-        Ok(authenticatedRequest.body.toString())
+      if(!authenticatedRequest.user.success){
+        Future.successful(Forbidden)
       }
-
+      else {
+        for {
+          repositories <- presentFuture
+          lastError <- repositories.findAndRemove(Json.obj("id" -> uuid))
+        } yield {
+          Logger.debug("Created 1 present from json");
+          Ok(authenticatedRequest.body.toString())
+        }
+      }
     }
   }
 
 
   def list() = AuthenticatedAction.async {
     authenticatedRequest => {
-      // let's do our query
-      val futurePresentsList: Future[List[Present]] = presentFuture.flatMap {
-        // find all cities with name `name`
-        _.find(Json.obj()).
-          // perform the query and get a cursor of JsObject
-          cursor[Present](ReadPreference.primary).
-          // Coollect the results as a list
-          collect[List]()
-      }
 
-      // everything's ok! Let's reply with a JsValue
-      futurePresentsList.map { presents =>
-        Ok(Json.toJson(presents))
+      if(!authenticatedRequest.user.success){
+        Future.successful(Forbidden)
+      }
+      else {
+
+        // let's do our query
+        val futurePresentsList: Future[List[Present]] = presentFuture.flatMap {
+          // find all cities with name `name`
+          _.find(Json.obj()).
+            // perform the query and get a cursor of JsObject
+            cursor[Present](ReadPreference.primary).
+            // Coollect the results as a list
+            collect[List]()
+        }
+
+        // everything's ok! Let's reply with a JsValue
+        futurePresentsList.map { presents =>
+          Ok(Json.toJson(presents))
+        }
       }
     }
   }
 
   def presentByName(child: String) = AuthenticatedAction.async {
     authenticatedRequest => {
-      // let's do our query
-      val futurePresentsList: Future[List[Present]] = presentFuture.flatMap {
-        // find all cities with name `name`
-        _.find(Json.obj("childId" -> child)).
-          // perform the query and get a cursor of JsObject
-          cursor[Present](ReadPreference.primary).
-          // Coollect the results as a list
-          collect[List]()
+      if(!authenticatedRequest.user.success){
+        Future.successful(Forbidden)
       }
+      else{
+        // let's do our query
+        val futurePresentsList: Future[List[Present]] = presentFuture.flatMap {
+          // find all cities with name `name`
+          _.find(Json.obj("childId" -> child)).
+            // perform the query and get a cursor of JsObject
+            cursor[Present](ReadPreference.primary).
+            // Coollect the results as a list
+            collect[List]()
+        }
 
-      // everything's ok! Let's reply with a JsValue
-      futurePresentsList.map { presents =>
-        Ok(Json.toJson(presents))
+        // everything's ok! Let's reply with a JsValue
+        futurePresentsList.map { presents =>
+          Ok(Json.toJson(presents))
+        }
       }
     }
   }

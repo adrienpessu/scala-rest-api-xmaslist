@@ -13,7 +13,7 @@ libraryDependencies ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-  "com.auth0" % "java-jwt" % "2.2.1"
+  "org.bitbucket.b_c" % "jose4j" % "0.5.4"
   // other dependencies separated by commas
 )
 

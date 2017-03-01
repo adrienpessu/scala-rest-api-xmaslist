@@ -4,11 +4,9 @@ import play.api.libs.json.Json
 
 case class User(name: String
                 , nickname: String
-                , familyName: String
                 , userId: String
                 , email: String
-                , emailVerified: String
-                , userMetadata: String
+                , success: Boolean
                )
 
 object User {
