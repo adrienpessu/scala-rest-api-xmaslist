@@ -27,7 +27,8 @@ class PresentController @Inject()(val reactiveMongoApi: ReactiveMongoApi, config
 
   def generateRandomUuidInPresent( newPresent : Present ) : Present= {
     def present: Present = new Present(UUID.randomUUID().toString, newPresent.getLabel, newPresent.getChildId
-      , newPresent.getUrl,newPresent.getUrl2,newPresent.getUrl3, newPresent.getSantaName, newPresent.getPics);
+      , newPresent.getUrl, newPresent.getSantaName, newPresent.getPics
+      , newPresent.getUrl2,newPresent.getUrl3, newPresent.getOrder);
     return present;
   }
 
