@@ -7,6 +7,6 @@ db.check:
   volumes_from:
     - data.check
   ports:
-    - "28017:27017"
+    - "27017:27017"
   command: --smallfiles --rest
 
