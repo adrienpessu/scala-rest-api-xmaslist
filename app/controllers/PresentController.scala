@@ -40,13 +40,11 @@ class PresentController @Inject()(val reactiveMongoApi: ReactiveMongoApi, config
       else {
         Json.fromJson[Present](authenticatedRequest.body) match {
           case JsSuccess(present, _) =>
-            for {
-              repositories <- presentFuture
-              lastError <- repositories.insert(generateRandomUuidInPresent(present))
-            } yield {
-              Logger.debug("Created 1 present from json");
-              Created(authenticatedRequest.body.toString())
-            }
+            presentFuture.map(repositories => {
+              val presentToInsert = generateRandomUuidInPresent(present)
+              repositories.insert(presentToInsert)
+              Created(Json.toJson(presentToInsert))
+            });
           case JsError(errors) =>
             Future.successful(BadRequest("Could not build a present from the json provided. "))
         }
