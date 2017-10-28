@@ -55,7 +55,7 @@ class PresentController @Inject()(val reactiveMongoApi: ReactiveMongoApi, config
 
   def update = AuthenticatedAction.async(parse.json) {
     authenticatedRequest => {
-      if(!authenticatedRequest.user.success){
+      if(!authenticatedRequest.user.success || !authenticatedRequest.user.role.equals("\"[ROLE_ADMIN]\"")){
         Future.successful(Forbidden)
       }
       else {
@@ -74,7 +74,6 @@ class PresentController @Inject()(val reactiveMongoApi: ReactiveMongoApi, config
       }
     }
   }
-
 
   def delete(uuid: String) = AuthenticatedAction.async {
     authenticatedRequest => {

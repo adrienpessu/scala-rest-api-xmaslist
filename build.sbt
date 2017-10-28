@@ -15,7 +15,7 @@ libraryDependencies ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-  "org.bitbucket.b_c" % "jose4j" % "0.5.4"
+  "io.jsonwebtoken" % "jjwt" % "0.7.0"
   // other dependencies separated by commas
 )
 

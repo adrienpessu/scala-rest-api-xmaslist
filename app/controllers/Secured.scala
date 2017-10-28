@@ -1,18 +1,13 @@
 package controllers
 
-import com.google.common.io.BaseEncoding
-
-import scala.concurrent.Future
-import play.api.libs.concurrent.Execution.Implicits._
-import play.api.mvc._
-import play.api.mvc.Results._
-import play.api.libs.json._
+import io.jsonwebtoken.Jwts
 import models.User
 import play.api.Logger
+import play.api.libs.json._
+import play.api.mvc._
 import play.mvc.Http.HeaderNames._
-import org.jose4j.keys.HmacKey
-import org.jose4j.jwt.consumer.JwtConsumer
-import org.jose4j.jwt.consumer.JwtConsumerBuilder
+
+import scala.concurrent.Future
 
 class AuthenticatedRequest[A](val user: User, val request: Request[A]) extends WrappedRequest[A](request)
 class AuthenticatedAsyncRequest[A](user: User, request: Request[A]) extends WrappedRequest[A](request)
@@ -27,18 +22,24 @@ object AuthenticatedAction extends ActionBuilder[AuthenticatedRequest] {
     val auth = request.headers.get(AUTHORIZATION)
     if(auth.isDefined) {
       val token = auth.get.substring(6).trim
+
       val jwtSecret = Option(sys.env("JWT_SECRET")).getOrElse("password")
 
       try {
-        val key = new HmacKey(jwtSecret.getBytes("UTF-8"))
-        val jwtConsumer = new JwtConsumerBuilder().setRequireExpirationTime.setAllowedClockSkewInSeconds(30).setRequireSubject.setExpectedIssuer("the issuer").setExpectedAudience("the audience").setVerificationKey(key).setRelaxVerificationKeyValidation.build
-        // relaxes key length requirement
-        val claims = jwtConsumer.processToClaims(token)
+       val claims = Jwts.parser()
+          .setSigningKey(jwtSecret)
+          .parseClaimsJws(token.replace("Bearer ", ""))
+          .getBody.getSubject
 
-        val user = User(claims.getClaimValue("payload").toString,
-          claims.getClaimValue("payload").toString,
-          claims.getClaimValue("payload").toString,
-          "",
+       val jsonMap: JsObject = Json.parse(claims).asInstanceOf[JsObject]
+
+       jsonMap.\("username").get.toString()
+
+        val user = User(jsonMap.\("username").get.toString(),
+          jsonMap.\("username").get.toString(),
+          jsonMap.\("username").get.toString(),
+          jsonMap.\("email").get.toString(),
+          jsonMap.\("role").get.toString(),
           true
         )
 
@@ -46,12 +47,12 @@ object AuthenticatedAction extends ActionBuilder[AuthenticatedRequest] {
         block(new AuthenticatedRequest[A](user, request))
       }
       catch {
-        case e: Exception => block(new AuthenticatedRequest[A](User("Anonymous", "", "", "", false), request))
+        case e: Exception => block(new AuthenticatedRequest[A](User("Anonymous", "", "", "", "", false), request))
       }
 
     }
     else{
-      block(new AuthenticatedRequest[A](User("Anonymous","", "", "", false), request))
+      block(new AuthenticatedRequest[A](User("Anonymous", "","", "", "", false), request))
     }
   }
 }

@@ -1,9 +1,9 @@
 # Only for dev
 data.check:
-  image: mongo:3.3
+  image: mongo:3.4.9
   command: --break-mongo
 db.check:
-  image: mongo:3.3
+  image: mongo:3.4.9
   volumes_from:
     - data.check
   ports:
