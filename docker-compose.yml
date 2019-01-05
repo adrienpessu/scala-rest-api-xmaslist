@@ -1,12 +1,12 @@
 # Only for dev
 data.check:
-  image: mongo:3.3
+  image: mongo:4
   command: --break-mongo
 db.check:
-  image: mongo:3.3
+  image: mongo:4
   volumes_from:
     - data.check
   ports:
     - "27017:27017"
-  command: --smallfiles --rest
+  command: --smallfiles
 

@@ -11,7 +11,7 @@ scalaVersion := "2.11.7"
 //routesGenerator := InjectedRoutesGenerator //I bet it's useless since play 2.5
 
 libraryDependencies ++= Seq(
-  "org.reactivemongo" %% "play2-reactivemongo" % "0.11.12"
+  "org.reactivemongo" %% "play2-reactivemongo" % "0.16.0-play25"
 )
 
 libraryDependencies ++= Seq(

@@ -12,6 +12,7 @@ import reactivemongo.api.ReadPreference
 import reactivemongo.play.json.collection._
 import reactivemongo.play.json._
 import reactivemongo.bson.{BSONObjectID, BSONDocument}
+import reactivemongo.api.Cursor
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -109,7 +110,7 @@ class PresentController @Inject()(val reactiveMongoApi: ReactiveMongoApi, config
             // perform the query and get a cursor of JsObject
             cursor[Present](ReadPreference.primary).
             // Coollect the results as a list
-            collect[List]()
+            collect[List](-1, Cursor.FailOnError[List[Present]]())
         }
 
         // everything's ok! Let's reply with a JsValue
@@ -133,7 +134,7 @@ class PresentController @Inject()(val reactiveMongoApi: ReactiveMongoApi, config
             // perform the query and get a cursor of JsObject
             cursor[Present](ReadPreference.primary).
             // Coollect the results as a list
-            collect[List]()
+            collect[List](-1, Cursor.FailOnError[List[Present]]())
         }
 
         // everything's ok! Let's reply with a JsValue
